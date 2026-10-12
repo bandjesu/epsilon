@@ -28,8 +28,7 @@ jobs:
 
       - name: Build simulator
         run: |
-          make PLATFORM=simulator clean
-          make -j2 PLATFORM=simulator epsilon.app.run
+          make SHELL=/bin/bash PLATFORM=simulator epsilon.app.run
 
       - name: Upload build outputs
         if: always()
