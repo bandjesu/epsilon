@@ -35,35 +35,27 @@ jobs:
       - name: Build simulator
         shell: bash
         run: |
-          make SHELL=/bin/bash PLATFORM=simulator
+          set -euo pipefail
+          make SHELL=/bin/bash PLATFORM=simulator epsilon_run
 
-     
-      - name: Locate build outputs
+      - name: Locate simulator outputs
         if: always()
+        shell: bash
         run: |
-          echo "Searching for executable files..."
-          find . -type f -executable \
-            -not -path './.git/*' \
-            -print | head -200
-
-          echo "Searching for common build outputs..."
           find . -type f \
-            \( -name '*.elf' -o -name '*.bin' \
-               -o -name '*.app' -o -name '*.so' \
-               -o -name '*.wasm' \) \
-            -not -path './.git/*' \
-            -print | head -200
+            \( -name 'epsilon.bin' -o -name 'epsilon.elf' \
+               -o -name 'epsilon_run' \) \
+            -not -path './.git/*' -print
 
-      - name: Upload build outputs
-        if: always()
+      - name: Upload simulator outputs
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: epsilon-build-diagnostics
+          name: epsilon-simulator-build
           path: |
-            **/*.elf
-            **/*.bin
-            **/*.app
-            **/*.so
-            **/*.wasm
-          if-no-files-found: warn
+            output/release/simulator/
+            epsilon/output/release/simulator/
+            epsilon/epsilon.elf
+            epsilon/epsilon.bin
+          if-no-files-found: error
           retention-days: 7
