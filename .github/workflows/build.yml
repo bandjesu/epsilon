@@ -1,5 +1,4 @@
-
-name: Build NumWorks Linux Simulator
+name: Build Epsilon Linux Simulator
 
 on:
   workflow_dispatch:
@@ -9,23 +8,36 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - name: Check out Epsilon
+      - name: Checkout source
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Install dependencies
+      - name: Install build tools
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential cmake ninja-build \
-            pkg-config libx11-dev libxext-dev \
-            libfreetype-dev libpng-dev libjpeg-dev
+            build-essential git python3 \
+            python3-pip python3-venv \
+            nodejs npm pkg-config
 
-      - name: Inspect project build instructions
+      - name: Set up Epsilon SDK
         run: |
-          git log -1 --oneline
-          ls -la
-          find . -maxdepth 3 \
-            \( -name Makefile -o -name CMakeLists.txt \) \
-            -print | head -100
+          chmod +x tools/setup.sh
+          tools/setup.sh
+
+      - name: Build simulator
+        run: |
+          make PLATFORM=simulator clean
+          make -j2 PLATFORM=simulator epsilon.app.run
+
+      - name: Upload build outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: epsilon-build-outputs
+          path: |
+            output/
+            epsilon/output/
+          if-no-files-found: warn
+          retention-days: 7
