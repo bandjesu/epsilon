@@ -17,26 +17,40 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential git python3 \
-            python3-pip python3-venv \
-            nodejs npm pkg-config
+            bash \
+            build-essential \
+            git \
+            python3 \
+            python3-pip \
+            python3-venv \
+            nodejs \
+            npm \
+            pkg-config
 
       - name: Set up Epsilon SDK
         run: |
           chmod +x tools/setup.sh
-          tools/setup.sh
+          bash tools/setup.sh
 
       - name: Build simulator
+        shell: bash
         run: |
-          make SHELL=/bin/bash PLATFORM=simulator epsilon.app.run
+          make SHELL=/bin/bash PLATFORM=simulator
 
-      - name: Upload build outputs
+      - name: List build outputs
         if: always()
+        run: |
+          find . -type f \( -name 'epsilon.elf' -o -name '*.app' \) \
+            -print | head -100
+
+      - name: Upload simulator
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: epsilon-build-outputs
+          name: epsilon-linux-simulator
           path: |
-            output/
-            epsilon/output/
+            epsilon/build/simulator/
+            epsilon/output/release/simulator/
+            build/simulator/
           if-no-files-found: warn
           retention-days: 7
